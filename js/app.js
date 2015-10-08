@@ -1,18 +1,38 @@
+//Base game object
+
+var GameBoard = function (rows, cols) {
+    this.rows = rows;
+    this.cols = cols;
+    this.enemyStartRow = 1;
+    this.enemyEndRow = 4;
+    this.numEnemies = 3;
+};
+
+var board = new GameBoard(6, 5);
+var GameObject = function () {
+    this.sprite = '';
+    this.x = 0;
+    this.y = 0;
+    this.row = 0;
+    this.col = 0;
+    this.blocking = false;
+
+};
+
+
 // Enemies our player must avoid
 var Enemy = function () {
+    GameObject.call(this);
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
 
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
-    this.x = 0;
-    this.y = 50;
-    this.row = 0;
     this.speed = 0
     this.speedMulti = 1;
-
 };
+Enemy.prototype = Object.create(GameObject.prototype);
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
@@ -29,22 +49,20 @@ Enemy.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-
 // Player, our Hero
 var Player = function () {
+    GameObject.call(this);
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
 
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/char-boy.png';
-    this.x = 200;
-    this.y = 400;
     this.score = 0;
-    this.level = 1;
-    this.row = 5;
-
+    this.level = 0;
 };
+
+Player.prototype = Object.create(GameObject.prototype);
 
 Player.prototype.update = function (dt) {
     //check for collision
@@ -60,12 +78,10 @@ Player.prototype.update = function (dt) {
         }
     }
 };
-
 // Draw the enemy on the screen, required method for game
 Player.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
-
 Player.prototype.handleInput = function (input) {
 
     switch (input) {
@@ -97,6 +113,12 @@ Player.prototype.handleInput = function (input) {
     }
 };
 
+//rock objects
+var Obstacle = function () {
+    GameObject.call(this);
+    this.blocking = true;
+    this.sprite = 'images/Rock.png';
+};
 //updates level to increase difficulty
 var updateLevel = function () {
     player.level++;
@@ -108,38 +130,44 @@ var updateLevel = function () {
     for (var i = 0; i < allEnemies.length; i++) {
         allEnemies[i].speed = allEnemies[i].speed + allEnemies[i].speed * .1
     }
-    console.log('score: ' + player.score);
-
+    generateEnemies(board.numEnemies, board.enemyStartRow, board.enemyEndRow);
 };
 
 //resets level after player is hit by enemy
 var resetLevel = function () {
-    //reset enemies
-    for (var i = 0; i < 3; i++) {
-        allEnemies[i].y = 230 - 83 * i;
-        allEnemies[i].speed = 20 + i * 20;
-        allEnemies[i].row = 3 - i;
-    }
-    //reset player
-    player.x = 200;
+    generateEnemies(3, 3, 1);
+
+    //reset playerplayer.x = 200;
     player.y = 400;
     player.score = 0;
     player.level = 1;
     player.row = 5;
-
 }
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
 var allEnemies = [];
-for (var i = 0; i < 3; i++) {
-    allEnemies[i] = new Enemy();
-    allEnemies[i].y = 230 - 83 * i;
-    allEnemies[i].speed = 20 + i * 20;
-    allEnemies[i].row = 3 - i;
 
-}
+function generateEnemies(numEnemies, topRow, bottomRow) {
+    for (var i = 0; i < numEnemies; i++) {
+        //select a random row from a continuous block (future support of larger maps)
+        var randomVal = topRow + Math.floor(Math.random() * (bottomRow - topRow + 1));
+        //check to see if we already have an enemy instance
+        var isEnemy = allEnemies[i] instanceof Enemy;
+        if (!isEnemy) {
+            allEnemies[i] = new Enemy();
+            allEnemies[i].speed = 20 + i * 20;
+        }
+        console.log('randomval = ' + randomVal);
+        allEnemies[i].y = 83 * randomVal - 20;
+
+        allEnemies[i].row = randomVal;
+    }
+};
+
+var allObstacles = [];
+
 var player = new Player();
 
 // This listens for key presses and sends the keys to your
