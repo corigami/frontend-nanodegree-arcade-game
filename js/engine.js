@@ -148,9 +148,15 @@ var Engine = (function (global) {
         /* Loop through all of the objects within the allEnemies array and call
          * the render function you have defined.
          */
+        allObstacles.forEach(function (obstacle) {
+            obstacle.render();
+        });
+
         allEnemies.forEach(function (enemy) {
             enemy.render();
         });
+
+
 
         player.render();
     }
@@ -161,7 +167,7 @@ var Engine = (function (global) {
      */
     function reset() {
         //call our resetLevel function in app.js
-        global.resetLevel();
+        resetLevel();
     }
 
     /* Go ahead and load all of the images we know we're going to need to
@@ -173,7 +179,8 @@ var Engine = (function (global) {
         'images/water-block.png',
         'images/grass-block.png',
         'images/enemy-bug.png',
-        'images/char-boy.png'
+        'images/char-boy.png',
+        'images/Rock.png'
     ]);
     Resources.onReady(init);
 
