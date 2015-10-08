@@ -6,9 +6,11 @@ var GameBoard = function (rows, cols) {
     this.enemyStartRow = 1;
     this.enemyEndRow = 4;
     this.numEnemies = 3;
+    this.numObstacles = 0;
 };
 
 var board = new GameBoard(6, 5);
+
 var GameObject = function () {
     this.sprite = '';
     this.x = 0;
@@ -18,7 +20,12 @@ var GameObject = function () {
     this.blocking = false;
 
 };
+GameObject.prototype = Object.create(GameObject.prototype);
 
+// Draw the obstacle on the screen, required method for game
+GameObject.prototype.render = function () {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
 
 // Enemies our player must avoid
 var Enemy = function () {
@@ -32,7 +39,7 @@ var Enemy = function () {
     this.speed = 0
     this.speedMulti = 1;
 };
-Enemy.prototype = Object.create(GameObject.prototype);
+Enemy.prototype = Object.create(Enemy.prototype);
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
@@ -62,7 +69,7 @@ var Player = function () {
     this.level = 0;
 };
 
-Player.prototype = Object.create(GameObject.prototype);
+Player.prototype = Object.create(Player.prototype);
 
 Player.prototype.update = function (dt) {
     //check for collision
@@ -77,6 +84,8 @@ Player.prototype.update = function (dt) {
             }
         }
     }
+    this.x = this.col * 101;
+    this.y = this.row * 83 - 15;
 };
 // Draw the enemy on the screen, required method for game
 Player.prototype.render = function () {
@@ -86,44 +95,37 @@ Player.prototype.handleInput = function (input) {
 
     switch (input) {
         case 'up':
-            if (this.y > 0) {
-                this.y = this.y - 83;
+            if (this.row > 0) {
                 this.row--;
             }
             break;
         case 'down':
-            if (this.y <= 350) {
-                this.y = this.y + 83;
+            if (this.row < board.rows - 1) {
                 this.row++;
             }
             break;
         case 'left':
-            if (this.x >= 100) {
-                this.x = this.x - 100;
+            if (this.col > 0) {
+                this.col--;
             }
             break;
         case 'right':
-            if (this.x <= 300) {
-                this.x = this.x + 100;
+            if (this.col < board.cols - 1) {
+                this.col++;
             }
+            break;
     }
-    if (this.y < 0) {
+    if (this.row == 0) {
         //you win!
         updateLevel()
     }
 };
 
-//rock objects
-var Obstacle = function () {
-    GameObject.call(this);
-    this.blocking = true;
-    this.sprite = 'images/Rock.png';
-};
 //updates level to increase difficulty
 var updateLevel = function () {
     player.level++;
-    player.x = 200;
-    player.y = 400;
+    player.col = Math.floor(board.cols / 2)
+    player.row = board.rows - 1;
     player.row = 5;
     player.score = player.score + 1000;
     //update speed 
@@ -135,10 +137,11 @@ var updateLevel = function () {
 
 //resets level after player is hit by enemy
 var resetLevel = function () {
+    board.numObstacles = 2;
     generateEnemies(3, 3, 1);
-
-    //reset playerplayer.x = 200;
-    player.y = 400;
+    generateObstacles(board.numObstacles);
+    player.col = Math.floor(board.cols / 2)
+    player.row = board.rows - 1;
     player.score = 0;
     player.level = 1;
     player.row = 5;
@@ -152,21 +155,53 @@ var allEnemies = [];
 function generateEnemies(numEnemies, topRow, bottomRow) {
     for (var i = 0; i < numEnemies; i++) {
         //select a random row from a continuous block (future support of larger maps)
-        var randomVal = topRow + Math.floor(Math.random() * (bottomRow - topRow + 1));
-        //check to see if we already have an enemy instance
+        var randomVal = getRandomInt(topRow, bottomRow)
+            //check to see if we already have an enemy instance
         var isEnemy = allEnemies[i] instanceof Enemy;
         if (!isEnemy) {
             allEnemies[i] = new Enemy();
             allEnemies[i].speed = 20 + i * 20;
         }
-        console.log('randomval = ' + randomVal);
         allEnemies[i].y = 83 * randomVal - 20;
-
         allEnemies[i].row = randomVal;
     }
 };
 
 var allObstacles = [];
+
+function generateObstacles(numObstacles) {
+    for (var i = 0; i < numObstacles; i++) {
+        var isObstacle = allObstacles[i] instanceof GameObject;
+        if (!isObstacle) {
+            var rock = new GameObject()
+            allObstacles[i] = rock;
+            allObstacles[i].sprite = 'images/Rock.png';
+        }
+        var locSet = true;
+        var x = 0;
+        var y = 0;
+        do {
+            x = getRandomInt(0, board.cols - 1);
+            y = getRandomInt(1, board.rows - 2);
+            console.log("x: " + x + "   :y " + y);
+            //loop through all obstacles in game to ensure we are not placing them on top of each other
+            for (i in allObstacles) {
+                if (allObstacles[i].col == x)
+                    if (allObstacles[i].row == y)
+                        locSet = false;
+                console.log(i + " " + locSet);
+            }
+        }
+        while (!locSet);
+        allObstacles[i].col = x;
+        allObstacles[i].row = y;
+        console.log("x: " + allObstacles[i].col + "   :y " + allObstacles[i].row);
+        allObstacles[i].x = allObstacles[i].col * 101;
+        allObstacles[i].y = allObstacles[i].row * 83 - 15
+        console.log("obs" + i + '  x:' + allObstacles[i].x + '   y:' + allObstacles[i].y);
+    }
+};
+
 
 var player = new Player();
 
@@ -182,3 +217,7 @@ document.addEventListener('keyup', function (e) {
 
     player.handleInput(allowedKeys[e.keyCode]);
 });
+
+var getRandomInt = function (low, high) {
+    return low + Math.floor(Math.random() * (high - low + 1));
+};
