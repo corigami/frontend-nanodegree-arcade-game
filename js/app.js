@@ -233,9 +233,6 @@ function generateObstacles(numObstacles) {
     var d = new Date();
 
     for (var i = 0; i < numObstacles; i++) {
-        console.log('numObs = ' + numObstacles);
-        console.log('Setting Obs: ' + i);
-
         var isObstacle = allObstacles[i] instanceof GameObject;
         if (!isObstacle) {
             var rock = new GameObject();
@@ -248,15 +245,6 @@ function generateObstacles(numObstacles) {
             var row = 0;
             col = getRandomInt(0, board.cols - 1);
             row = getRandomInt(1, board.rows - 2);
-            var n = d.getMilliseconds();
-            //loop through all obstacles in game to ensure we are not placing them on top of each other
-            //            for (j in allObstacles) {
-            //                console.log('checking obstacle ' + j + ' of ' + allObstacles.length + ' ' + n);    
-            //                if (allObstacles[j].col == col)
-            //                    if (allObstacles[j].row == row)
-            //                        locSet = false;
-            //            }
-            console.log('checking map - row:' + row + ' col:' + col + ' = ' + board.map[row][col]);
             if (board.map[row][col] == 'r') {
                 locSet = false;
             } else {
@@ -265,8 +253,6 @@ function generateObstacles(numObstacles) {
                 allObstacles[i].x = allObstacles[i].col * 101;
                 allObstacles[i].y = allObstacles[i].row * 83 - 15
                 board.map[row][col] = 'r';
-                console.log('map: ' + row + ',' + col + '= ' + board.map[row][col]);
-                console.log('Done Setting Obs: ' + i);
                 locSet = true;
             }
         } while (!locSet);
@@ -302,6 +288,5 @@ var checkMap = function () {
         for (var col = 0; col < board.cols; col++) {
             rowString = rowString.concat('[' + board.map[row][col] + ']');
         }
-        console.log(rowString);
     }
 };
