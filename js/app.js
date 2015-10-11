@@ -102,6 +102,14 @@ Player.prototype.update = function (dt) {
 // Draw the enemy on the screen, required method for game
 Player.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    var level = 'Level: ' + this.level;
+    var score = 'Score: ' + this.score;
+    ctx.textAlign = "left";
+    ctx.fillText(score, 10, 100);
+    ctx.strokeText(score, 10, 100);
+    ctx.textAlign = "right";
+    ctx.fillText(level, canvas.width - 10, 100);
+    ctx.strokeText(level, canvas.width - 10, 100);
 };
 Player.prototype.handleInput = function (input) {
 
@@ -169,7 +177,7 @@ var updateLevel = function () {
     player.level++;
     player.col = Math.floor(board.cols / 2)
     player.row = board.rows - 1;
-    player.score = player.score + 1000;
+    player.score = player.score + 100;
     //update speed 
     for (var i = 0; i < allEnemies.length; i++) {
         allEnemies[i].speed = allEnemies[i].speed + allEnemies[i].speed * .1;
