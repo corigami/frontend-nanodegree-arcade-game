@@ -28,6 +28,10 @@ var Engine = (function (global) {
     canvas.width = 505;
     canvas.height = 606;
     doc.body.appendChild(canvas);
+    ctx.font = "30px Impact";
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 3;
 
     /* This function serves as the kickoff point for the game loop itself
      * and handles properly calling the update and render methods.
@@ -187,4 +191,5 @@ var Engine = (function (global) {
      * from within their app.js files.
      */
     global.ctx = ctx;
+    global.canvas = canvas;
 })(this);
