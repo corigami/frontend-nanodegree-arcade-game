@@ -7,6 +7,18 @@ var GameBoard = function (rows, cols) {
     this.enemyEndRow = 4;
     this.numEnemies = 3;
     this.numObstacles = 0;
+    var map = [];
+    for (var row = 0; row < rows; row++) {
+        map[row] = []
+        for (var col = 0; col < cols; col++) {
+            map[row][col] = ' ';
+        }
+    }
+
+    this.map = map;
+    for (var i = 0; i < rows; i++) {
+        this.map[i] = new Array(cols);
+    }
 };
 
 var board = new GameBoard(6, 5);
@@ -95,22 +107,22 @@ Player.prototype.handleInput = function (input) {
 
     switch (input) {
         case 'up':
-            if (this.row > 0) {
+            if (this.row > 0 && moveBlocked(input)) {
                 this.row--;
             }
             break;
         case 'down':
-            if (this.row < board.rows - 1) {
+            if (this.row < board.rows - 1 && moveBlocked(input)) {
                 this.row++;
             }
             break;
         case 'left':
-            if (this.col > 0) {
+            if (this.col > 0 && moveBlocked(input)) {
                 this.col--;
             }
             break;
         case 'right':
-            if (this.col < board.cols - 1) {
+            if (this.col < board.cols - 1 && moveBlocked(input)) {
                 this.col++;
             }
             break;
@@ -121,30 +133,71 @@ Player.prototype.handleInput = function (input) {
     }
 };
 
+var moveBlocked = function (direction) {
+    switch (direction) {
+        case 'up':
+            if (board.map[player.row - 1][player.col] == 'r') {
+                return false;
+            }
+            break;
+        case 'down':
+            if (board.map[player.row + 1][player.col] == 'r') {
+                return false;
+            }
+            break;
+        case 'left':
+            if (board.map[player.row][player.col - 1] == 'r') {
+                return false;
+            }
+            break;
+        case 'right':
+            if (board.map[player.row][player.col + 1] == 'r') {
+                return false;
+            }
+            break;
+    }
+    return true;
+};
+
 //updates level to increase difficulty
 var updateLevel = function () {
+    for (var row = 0; row < board.rows; row++) {
+        for (var col = 0; col < board.cols; col++) {
+            board.map[row][col] = ' ';
+        }
+    }
     player.level++;
     player.col = Math.floor(board.cols / 2)
     player.row = board.rows - 1;
-    player.row = 5;
     player.score = player.score + 1000;
     //update speed 
     for (var i = 0; i < allEnemies.length; i++) {
-        allEnemies[i].speed = allEnemies[i].speed + allEnemies[i].speed * .1
+        allEnemies[i].speed = allEnemies[i].speed + allEnemies[i].speed * .1;
     }
+
     generateEnemies(board.numEnemies, board.enemyStartRow, board.enemyEndRow);
+    generateObstacles(board.numObstacles);
 };
 
 //resets level after player is hit by enemy
 var resetLevel = function () {
-    board.numObstacles = 2;
-    generateEnemies(3, 3, 1);
+    for (var row = 0; row < board.rows; row++) {
+        for (var col = 0; col < board.cols; col++) {
+            board.map[row][col] = ' ';
+        }
+    }
+    for (var i = 0; i < allEnemies.length; i++) {
+        allEnemies[i].speed = 20 + i * 20;
+    }
+
+    generateEnemies(3, 1, 3);
+    board.numObstacles = 3;
+
     generateObstacles(board.numObstacles);
     player.col = Math.floor(board.cols / 2)
     player.row = board.rows - 1;
     player.score = 0;
     player.level = 1;
-    player.row = 5;
 }
 
 // Now instantiate your objects.
@@ -154,7 +207,7 @@ var allEnemies = [];
 
 function generateEnemies(numEnemies, topRow, bottomRow) {
     for (var i = 0; i < numEnemies; i++) {
-        //select a random row from a continuous block (future support of larger maps)
+        //select a random row from a continuous block (future support of larger map
         var randomVal = getRandomInt(topRow, bottomRow)
             //check to see if we already have an enemy instance
         var isEnemy = allEnemies[i] instanceof Enemy;
@@ -162,6 +215,7 @@ function generateEnemies(numEnemies, topRow, bottomRow) {
             allEnemies[i] = new Enemy();
             allEnemies[i].speed = 20 + i * 20;
         }
+
         allEnemies[i].y = 83 * randomVal - 20;
         allEnemies[i].row = randomVal;
     }
@@ -170,36 +224,55 @@ function generateEnemies(numEnemies, topRow, bottomRow) {
 var allObstacles = [];
 
 function generateObstacles(numObstacles) {
+    //        for (var row = 0; row < board.rows; row++) {
+    //            for (var col = 0; col < board.cols; col++) {
+    //                if(board.map[row][col] == 'r')
+    //                    board.map[row][col] = ' ';
+    //            }
+    //        }
+    var d = new Date();
+
     for (var i = 0; i < numObstacles; i++) {
+        console.log('numObs = ' + numObstacles);
+        console.log('Setting Obs: ' + i);
+
         var isObstacle = allObstacles[i] instanceof GameObject;
         if (!isObstacle) {
-            var rock = new GameObject()
+            var rock = new GameObject();
             allObstacles[i] = rock;
             allObstacles[i].sprite = 'images/Rock.png';
         }
         var locSet = true;
-        var x = 0;
-        var y = 0;
         do {
-            x = getRandomInt(0, board.cols - 1);
-            y = getRandomInt(1, board.rows - 2);
-            console.log("x: " + x + "   :y " + y);
+            var col = 0;
+            var row = 0;
+            col = getRandomInt(0, board.cols - 1);
+            row = getRandomInt(1, board.rows - 2);
+            var n = d.getMilliseconds();
             //loop through all obstacles in game to ensure we are not placing them on top of each other
-            for (i in allObstacles) {
-                if (allObstacles[i].col == x)
-                    if (allObstacles[i].row == y)
-                        locSet = false;
-                console.log(i + " " + locSet);
+            //            for (j in allObstacles) {
+            //                console.log('checking obstacle ' + j + ' of ' + allObstacles.length + ' ' + n);    
+            //                if (allObstacles[j].col == col)
+            //                    if (allObstacles[j].row == row)
+            //                        locSet = false;
+            //            }
+            console.log('checking map - row:' + row + ' col:' + col + ' = ' + board.map[row][col]);
+            if (board.map[row][col] == 'r') {
+                locSet = false;
+            } else {
+                allObstacles[i].col = col;
+                allObstacles[i].row = row;
+                allObstacles[i].x = allObstacles[i].col * 101;
+                allObstacles[i].y = allObstacles[i].row * 83 - 15
+                board.map[row][col] = 'r';
+                console.log('map: ' + row + ',' + col + '= ' + board.map[row][col]);
+                console.log('Done Setting Obs: ' + i);
+                locSet = true;
             }
-        }
-        while (!locSet);
-        allObstacles[i].col = x;
-        allObstacles[i].row = y;
-        console.log("x: " + allObstacles[i].col + "   :y " + allObstacles[i].row);
-        allObstacles[i].x = allObstacles[i].col * 101;
-        allObstacles[i].y = allObstacles[i].row * 83 - 15
-        console.log("obs" + i + '  x:' + allObstacles[i].x + '   y:' + allObstacles[i].y);
+        } while (!locSet);
+
     }
+    checkMap();
 };
 
 
@@ -220,4 +293,15 @@ document.addEventListener('keyup', function (e) {
 
 var getRandomInt = function (low, high) {
     return low + Math.floor(Math.random() * (high - low + 1));
+};
+
+var checkMap = function () {
+
+    for (var row = 0; row < board.rows; row++) {
+        var rowString = row + '';
+        for (var col = 0; col < board.cols; col++) {
+            rowString = rowString.concat('[' + board.map[row][col] + ']');
+        }
+        console.log(rowString);
+    }
 };
