@@ -1,6 +1,16 @@
-/*jslint sloppy: true, vars: true*/
-//defines game parameters.  Allows for gameboard size to be upgraded in future versions.
+/*jslint vars: true, white: true*/
+
+/**
+ * @description - represents current state of game area
+ * @constructor
+ * @param {number} rows - number of rows in the current game
+ * @param {number} cols -  number of columns in the current game
+ * @param {number} enemyStart - starting location of possible enemy placements (row)
+ * @param {number} enemyStop - ending location of possible enemy placements (row)
+ * TODO: add functionality to dynamically change number of enemies on the board
+ */
 var GameBoard = function (rows, cols, enemyStart, enemyStop) {
+    'use strict';
     this.rows = rows;
     this.cols = cols;
     this.enemyStartRow = enemyStart;
@@ -21,8 +31,11 @@ var GameBoard = function (rows, cols, enemyStart, enemyStop) {
     this.map = map;
 };
 
-//Base game object.  All other objects extend this functionality if needed.
+/**
+ * @description - represents base game object.  Will be extended by other game objects as needed.
+ */
 var GameObject = function () {
+    'use strict';
     this.sprite = '';
     this.x = 0;
     this.y = 0;
@@ -33,28 +46,33 @@ var GameObject = function () {
 };
 GameObject.prototype = Object.create(GameObject.prototype);
 
-// Draw the obstacle on the screen, required method for game
+/**
+ * @description - Draw the obstacle on the screen, required method for game
+ */
 GameObject.prototype.render = function () {
+    'use strict';
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-// Enemies our player must avoid
+/**
+ * @description - represents enemy game object. 
+ * @constructor
+ */
 var Enemy = function () {
+    'use strict';
     GameObject.call(this);
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
-
-    // The image/sprite for our enemies, this uses
-    // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
     this.speed = 0;
     this.speedMulti = 1;
 };
 Enemy.prototype = Object.create(Enemy.prototype);
 
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
+/**
+ * @description - Update the enemy's position, required method for game
+ * @param {number} dt - a time delta between ticks
+ */
 Enemy.prototype.update = function (dt) {
+    'use strict';
     //check to see if enemy is on screen, if not, reset it's location
     if (this.x < canvas.width) {
         this.x = this.x + this.speed * dt;
@@ -63,13 +81,20 @@ Enemy.prototype.update = function (dt) {
     }
 };
 
-// Draw the enemy on the screen, required method for game
+/**
+ * @description - Draw the enemy on the screen, required method for game
+ */
 Enemy.prototype.render = function () {
+    'use strict';
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-// Player, our Hero
+/**
+ * @description - represents player game object.
+ * @constructor
+ */
 var Player = function () {
+    'use strict';
     GameObject.call(this);
     this.sprite = 'images/char-boy.png';
     this.score = 0;
@@ -77,8 +102,14 @@ var Player = function () {
 };
 Player.prototype = Object.create(Player.prototype);
 
+/**
+ * @description - Update the players's position, required method for game
+ * @param {number} dt - a time delta between ticks (not currently used)
+ */
 Player.prototype.update = function (dt) {
-    //check for collision
+    'use strict';
+    //check for collision - since we don't want to rely on rows for enemy collisions (due to alpha transparency in sprite)
+    //TODO: add offset values to enemy objects to be stored as part of the object instead of using static values
     var i;
     for (i = 0; i < allEnemies.length; i += 1) {
         //check for collision with left edge of player
@@ -95,8 +126,11 @@ Player.prototype.update = function (dt) {
     this.y = this.row * 83 - 15;
 };
 
-// Draw the enemy on the screen, required method for game
+/**
+ * @description - Draw the player and on the screen, required method for game. Also renders score and level
+ */
 Player.prototype.render = function () {
+    'use strict';
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
     var level = 'Level: ' + this.level;
     var score = 'Score: ' + this.score;
@@ -108,30 +142,33 @@ Player.prototype.render = function () {
     ctx.strokeText(level, canvas.width - 10, 100);
 };
 
-//handle input from user and check that move is valid
+/**
+ * @description - moves the player based on user input.
+ * @param {string} input - direction of user input
+ */
 Player.prototype.handleInput = function (input) {
-
+    'use strict';
     switch (input) {
-    case 'up':
-        if (this.row > 0 && moveBlocked(input)) {
-            this.row -= 1;
-        }
-        break;
-    case 'down':
-        if (this.row < board.rows - 1 && moveBlocked(input)) {
-            this.row += 1;
-        }
-        break;
-    case 'left':
-        if (this.col > 0 && moveBlocked(input)) {
-            this.col -= 1;
-        }
-        break;
-    case 'right':
-        if (this.col < board.cols - 1 && moveBlocked(input)) {
-            this.col += 1;
-        }
-        break;
+        case 'up':
+            if (this.row > 0 && moveBlocked(input)) {
+                this.row -= 1;
+            }
+            break;
+        case 'down':
+            if (this.row < board.rows - 1 && moveBlocked(input)) {
+                this.row += 1;
+            }
+            break;
+        case 'left':
+            if (this.col > 0 && moveBlocked(input)) {
+                this.col -= 1;
+            }
+            break;
+        case 'right':
+            if (this.col < board.cols - 1 && moveBlocked(input)) {
+                this.col += 1;
+            }
+            break;
     }
     if (this.row === 0) {
         //you win!
@@ -139,35 +176,43 @@ Player.prototype.handleInput = function (input) {
     }
 };
 
-//Function to check to see if a obstacle is in the way.
-var moveBlocked = function (direction) {
+/**
+ * @description - function to check to see if a obstacle is in the way.
+ * @param {string} direction - direction to check from player
+ */
+function moveBlocked(direction) {
+    'use strict';
     switch (direction) {
-    case 'up':
-        if (board.map[player.row - 1][player.col] === 'r') {
-            return false;
-        }
-        break;
-    case 'down':
-        if (board.map[player.row + 1][player.col] === 'r') {
-            return false;
-        }
-        break;
-    case 'left':
-        if (board.map[player.row][player.col - 1] === 'r') {
-            return false;
-        }
-        break;
-    case 'right':
-        if (board.map[player.row][player.col + 1] === 'r') {
-            return false;
-        }
-        break;
+        case 'up':
+            if (board.map[player.row - 1][player.col] === 'r') {
+                return false;
+            }
+            break;
+        case 'down':
+            if (board.map[player.row + 1][player.col] === 'r') {
+                return false;
+            }
+            break;
+        case 'left':
+            if (board.map[player.row][player.col - 1] === 'r') {
+                return false;
+            }
+            break;
+        case 'right':
+            if (board.map[player.row][player.col + 1] === 'r') {
+                return false;
+            }
+            break;
     }
     return true;
-};
+}
 
-//updates level to increase difficulty
-var updateLevel = function () {
+/**
+ * @description - updates level to increase difficulty
+ */
+function updateLevel() {
+    'use strict';
+    //clear map
     var row;
     for (row = 0; row < board.rows; row += 1) {
         var col;
@@ -179,7 +224,7 @@ var updateLevel = function () {
     player.col = Math.floor(board.cols / 2);
     player.row = board.rows - 1;
     player.score = player.score + 100;
-    //update speed 
+    //update speed of enemies
     var i;
     for (i = 0; i < allEnemies.length; i += 1) {
         allEnemies[i].speed = allEnemies[i].speed + allEnemies[i].speed * 0.1;
@@ -187,10 +232,15 @@ var updateLevel = function () {
 
     generateEnemies();
     generateObstacles(board.numObstacles);
-};
+}
 
-//resets level after player is hit by enemy
-var resetLevel = function () {
+/**
+ * @description - resets level after player is hit by enemy
+ * TODO: update to use non-static enemy and obstacle numbers
+ */
+function resetLevel() {
+    'use strict';
+    //clear map
     var row;
     for (row = 0; row < board.rows; row += 1) {
         var col;
@@ -198,43 +248,50 @@ var resetLevel = function () {
             board.map[row][col] = ' ';
         }
     }
+    //reset enemy speed
     var i;
     for (i = 0; i < allEnemies.length; i += 1) {
         allEnemies[i].speed = 20 + i * 20;
     }
-
-    generateEnemies(3, 1, 3);
     board.numObstacles = 3;
-
+    generateEnemies(board.numEnemies, board.enemyStartRow, board.enemyEndRow);
     generateObstacles(board.numObstacles);
     player.col = Math.floor(board.cols / 2);
     player.row = board.rows - 1;
     player.score = 0;
     player.level = 1;
-};
+}
 
-// Enemy spawner.  Places enemies on a random row based on 
+/**
+ * @description -  Enemy spawner.  Places enemies on a random row
+ */
 function generateEnemies() {
+    'use strict';
     var i;
     for (i = 0; i < board.numEnemies; i += 1) {
-        //select a random row from a continuous block (future support of larger map
-        var randomVal = getRandomInt(board.enemyStartRow, board.enemyEndRow);
-            //check to see if we already have an enemy instance
+        //select a random row from a continuous block (future support of larger map)
+        var randomVal = getRandomRow(board.enemyStartRow, board.enemyEndRow);
+        //check to see if we already have an enemy instance
         var isEnemy = allEnemies[i] instanceof Enemy;
         if (!isEnemy) {
             allEnemies[i] = new Enemy();
             allEnemies[i].speed = 20 + i * 20;
         }
-
         allEnemies[i].y = 83 * randomVal - 20;
         allEnemies[i].row = randomVal;
     }
 }
 
+/**
+ * @description -  Obstacle spawner.  Places obstacles in random locations
+ * @param {number} numObstacles - how many obstacles to create
+ */
 function generateObstacles(numObstacles) {
+    'use strict';
     var d = new Date(),
         i;
     for (i = 0; i < numObstacles; i += 1) {
+        //check to see if we have an obstacle to reuse
         var isObstacle = allObstacles[i] instanceof GameObject;
         if (!isObstacle) {
             var rock = new GameObject();
@@ -242,11 +299,13 @@ function generateObstacles(numObstacles) {
             allObstacles[i].sprite = 'images/Rock.png';
         }
         var locSet = true;
+
+        //make sure we don't put an obstacle over another 
         do {
             var col = 0;
             var row = 0;
-            col = getRandomInt(0, board.cols - 1);
-            row = getRandomInt(1, board.rows - 2);
+            col = getRandomRow(0, board.cols - 1);
+            row = getRandomRow(1, board.rows - 2);
             if (board.map[row][col] === 'r') {
                 locSet = false;
             } else {
@@ -262,9 +321,11 @@ function generateObstacles(numObstacles) {
     }
 }
 
-// This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
+/**
+ * @description -   This listens for key presses and sends the keys to your Player.handleInput() method. 
+ */
 document.addEventListener('keyup', function (e) {
+    'use strict';
     var allowedKeys = {
         37: 'left',
         38: 'up',
@@ -275,17 +336,19 @@ document.addEventListener('keyup', function (e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
-var getRandomInt = function (low, high) {
+/**
+ * @description -   This listens for key presses and sends the keys to your Player.handleInput() method. 
+ * @param {number} low - minimum number of range to return
+ * @param {number} high - maximum number of range to return
+ * @returns {number} random row
+ */
+function getRandomRow(low, high) {
+    'use strict';
     return low + Math.floor(Math.random() * (high - low + 1));
-};
-
+}
 
 //create our game objects
 var board = new GameBoard(6, 5, 1, 3),
     allObstacles = [],
     allEnemies = [],
     player = new Player();
-
-
-
-
