@@ -288,8 +288,7 @@ function generateEnemies() {
  */
 function generateObstacles(numObstacles) {
     'use strict';
-    var d = new Date(),
-        i;
+    var i;
     for (i = 0; i < numObstacles; i += 1) {
         //check to see if we have an obstacle to reuse
         var isObstacle = allObstacles[i] instanceof GameObject;
