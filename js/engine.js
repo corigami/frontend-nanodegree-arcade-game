@@ -95,10 +95,10 @@ var Engine = (function (global) {
      * render methods.
      */
     function updateEntities(dt) {
-        allEnemies.forEach(function (enemy) {
+        board.allEnemies.forEach(function (enemy) {
             enemy.update(dt);
         });
-        player.update();
+        board.player.update();
     }
 
     /* This function initially draws the "game level", it will then call
@@ -152,15 +152,15 @@ var Engine = (function (global) {
         /* Loop through all of the objects within the allEnemies array and call
          * the render function you have defined.
          */
-        allObstacles.forEach(function (obstacle) {
+        board.allObstacles.forEach(function (obstacle) {
             obstacle.render();
         });
 
-        allEnemies.forEach(function (enemy) {
+        board.allEnemies.forEach(function (enemy) {
             enemy.render();
         });
 
-        player.render();
+        board.player.render();
     }
 
     /* This function does nothing but it could have been a good place to
@@ -169,7 +169,7 @@ var Engine = (function (global) {
      */
     function reset() {
         //call our resetLevel function in app.js
-        resetLevel();
+        board.resetLevel();
     }
 
     /* Go ahead and load all of the images we know we're going to need to
