@@ -113,11 +113,11 @@ Player.prototype.update = function (dt) {
     var i;
     for (i = 0; i < allEnemies.length; i += 1) {
         //check for collision with left edge of player
-        if (player.row === allEnemies[i].row) {
-            if (allEnemies[i].x <= player.x + 20 && allEnemies[i].x + 100 >= player.x + 20) {
+        if (this.row === allEnemies[i].row) {
+            if (allEnemies[i].x <= this.x + 20 && allEnemies[i].x + 100 >= this.x + 20) {
                 resetLevel();
                 //check for collision with right edge of player
-            } else if (allEnemies[i].x <= player.x + 80 && allEnemies[i].x + 100 >= player.x + 80) {
+            } else if (allEnemies[i].x <= this.x + 80 && allEnemies[i].x + 100 >= this.x + 80) {
                 resetLevel();
             }
         }
