@@ -234,7 +234,7 @@ Player.prototype.update = function (dt) {
                 board.resetLevel();
                 //check for collision with right edge of player
             } else if (board.allEnemies[i].x <= this.x + 80 && board.allEnemies[i].x + 100 >= this.x + 80) {
-                boar.resetLevel();
+                board.resetLevel();
             }
         }
     }
